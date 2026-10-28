@@ -107,11 +107,12 @@ LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "dashboard"
 LOGOUT_REDIRECT_URL = "login"
 
-# Iframe & CSRF settings for AI Studio preview environment
+# Iframe & CSRF settings
 X_FRAME_OPTIONS = "ALLOWALL"
 CSRF_TRUSTED_ORIGINS = [
     "https://*.run.app",
     "https://*.google.com",
+    "https://*.pythonanywhere.com",
     "http://127.0.0.1:8000",
     "http://localhost:3000",
     "http://localhost:8080",

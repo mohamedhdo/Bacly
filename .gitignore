@@ -1,4 +1,5 @@
 .env
+env_pythonanywhere.txt
 db.sqlite3
 media/
 venv/
