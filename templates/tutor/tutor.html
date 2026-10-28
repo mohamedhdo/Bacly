@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}Ask Tutor - Bacly{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6" x-data="tutorApp()">
+
+  <!-- Page Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
+        <span class="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center text-sm shadow-md shadow-amber-500/20">
+          <i data-lucide="sparkles" class="w-5 h-5"></i>
+        </span>
+        <span>Ask Bacly Tutor</span>
+      </h1>
+      <p class="text-sm text-slate-500 mt-1">
+        Upload a photo of your math exercise or type it below. Bacly solves it step-by-step and spots errors in your attempt.
+      </p>
+    </div>
+
+    <button @click="resetForm()" class="hidden sm:inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-white hover:text-slate-900 transition-colors shadow-sm">
+      <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+      <span>Try another exercise</span>
+    </button>
+  </div>
+
+  <!-- TUTOR FORM CARD -->
+  <div id="tutor-form-box" class="bg-white p-6 rounded-3xl shadow-card border border-slate-100 space-y-5">
+    <form id="tutorForm"
+          hx-post="{% url 'tutor_explain' %}"
+          hx-target="#tutor-results-container"
+          hx-swap="innerHTML"
+          hx-encoding="multipart/form-data"
+          hx-indicator="#tutor-loading-state"
+          @submit="isSubmitting = true">
+      {% csrf_token %}
+
+      <!-- Chapter Selection (Optional filter) -->
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Math Chapter (Optional)</label>
+        <select name="chapter" class="w-full sm:w-80 px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm bg-slate-50/50 focus:ring-2 focus:ring-brand font-medium">
+          <option value="">Auto-detect from exercise</option>
+          {% for ch in chapters %}
+          <option value="{{ ch }}">{{ ch }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- EXERCISE PHOTO DROPZONE -->
+      <div class="space-y-2">
+        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">1. Exercise Photo or Screenshot</label>
+        
+        <div class="relative border-2 border-dashed rounded-2xl p-6 text-center transition-colors cursor-pointer group"
+             :class="hasExerciseImage ? 'border-brand bg-blue-50/20' : 'border-slate-300 hover:border-brand hover:bg-slate-50'"
+             @dragover.prevent=""
+             @drop.prevent="handleExerciseDrop($event)">
+          
+          <input type="file"
+                 id="exercise_image_input"
+                 name="exercise_image"
+                 accept="image/png, image/jpeg, image/webp"
+                 capture="environment"
+                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                 @change="previewExerciseImage($event)">
+
+          <!-- Empty Dropzone State -->
+          <div x-show="!hasExerciseImage" class="space-y-2 pointer-events-none">
+            <div class="w-12 h-12 rounded-2xl bg-brand/10 text-brand flex items-center justify-center mx-auto group-hover:scale-105 transition-transform">
+              <i data-lucide="camera" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-slate-800">Tap to take photo or drag & drop exercise image</p>
+              <p class="text-xs text-slate-400 mt-0.5">Supports JPG, PNG, WEBP up to 5 MB</p>
+            </div>
+          </div>
+
+          <!-- Image Preview State -->
+          <div x-show="hasExerciseImage" class="flex items-center justify-center gap-4 relative z-10" style="display: none;">
+            <img :src="exercisePreviewUrl" class="h-28 max-w-xs object-contain rounded-xl border border-slate-200 shadow-sm bg-white p-1">
+            <div class="text-left space-y-1">
+              <p class="text-xs font-bold text-slate-800" x-text="exerciseFileName"></p>
+              <span class="inline-block text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">Image Ready</span>
+              <div>
+                <button type="button" @click.stop="removeExerciseImage()" class="text-xs font-semibold text-red-600 hover:underline inline-flex items-center gap-1">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                  <span>Remove photo</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- TEXT EXERCISE INPUT -->
+      <div class="space-y-2">
+        <label for="exercise_text" class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+          Or Type / Paste Math Exercise
+        </label>
+        <textarea id="exercise_text"
+                  name="exercise_text"
+                  rows="3"
+                  placeholder="e.g. Study the convergence of the sequence u(n+1) = (1/3)u(n) + 2 with u(0) = 1..."
+                  class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand font-mono bg-slate-50/50"></textarea>
+      </div>
+
+      <!-- COLLAPSIBLE: STUDENT'S ATTEMPT (OPTIONAL FOR MISTAKE DETECTION) -->
+      <div class="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50/40">
+        <button type="button"
+                @click="showAttempt = !showAttempt"
+                class="w-full px-5 py-3.5 flex items-center justify-between text-left font-bold text-xs uppercase tracking-wider text-slate-700 hover:bg-slate-100/60 transition-colors">
+          <div class="flex items-center gap-2">
+            <i data-lucide="edit-3" class="w-4 h-4 text-orange-500"></i>
+            <span>Add My Attempt / Working Steps (Optional - Enables Mistake Finder)</span>
+          </div>
+          <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200" :class="showAttempt ? 'rotate-180' : ''"></i>
+        </button>
+
+        <div x-show="showAttempt" class="p-5 pt-0 space-y-4 border-t border-slate-200/60" style="display: none;">
+          <p class="text-xs text-slate-500 mt-3">
+            Bacly will inspect your written steps, pinpoint exactly where you went wrong in orange, and show you how to fix it according to Algerian Bac marking criteria.
+          </p>
+
+          <div>
+            <textarea name="attempt_text"
+                      rows="3"
+                      placeholder="Type your intermediate steps or calculations here..."
+                      class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-brand font-mono bg-white"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Or upload photo of your notebook attempt:</label>
+            <input type="file"
+                   name="attempt_image"
+                   accept="image/*"
+                   class="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100 cursor-pointer">
+          </div>
+        </div>
+      </div>
+
+      <!-- EXPLAIN BUTTON WITH ROTATING LOADING TEXT -->
+      <div class="pt-2">
+        <button type="submit"
+                id="explain-button"
+                class="w-full py-4 px-6 rounded-2xl bg-brand text-white font-bold text-base hover:bg-brand-800 transition-all shadow-lg shadow-brand/25 flex items-center justify-center gap-3 active:scale-[0.99]">
+          <i data-lucide="sparkles" class="w-5 h-5 text-amber-400"></i>
+          <span>Explain Step-by-Step</span>
+        </button>
+      </div>
+
+      <!-- HTMX LOADING SPINNER STATE -->
+      <div id="tutor-loading-state" class="htmx-indicator w-full py-8 text-center space-y-3">
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-brand/10 text-brand animate-spin">
+          <i data-lucide="loader-2" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <p class="text-sm font-bold text-slate-800" x-text="rotatingText"></p>
+          <p class="text-xs text-slate-400 mt-0.5">Algerian Baccalauréat Mathematics Model</p>
+        </div>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- RESULTS & CHAT CONTAINER (SWAPPED VIA HTMX) -->
+  <div id="tutor-results-container" class="space-y-6">
+    <!-- Results and chat inject here dynamically -->
+  </div>
+
+</div>
+
+<script>
+  function tutorApp() {
+    return {
+      hasExerciseImage: false,
+      exercisePreviewUrl: '',
+      exerciseFileName: '',
+      showAttempt: false,
+      isSubmitting: false,
+      rotatingText: 'Reading the exercise...',
+      rotatingMessages: [
+        'Reading the exercise...',
+        'Solving step by step...',
+        'Checking your attempt...',
+        'Generating practice drills...',
+      ],
+      currentMsgIdx: 0,
+      timer: null,
+
+      init() {
+        this.timer = setInterval(() => {
+          this.currentMsgIdx = (this.currentMsgIdx + 1) % this.rotatingMessages.length;
+          this.rotatingText = this.rotatingMessages[this.currentMsgIdx];
+        }, 1600);
+      },
+
+      previewExerciseImage(event) {
+        const file = event.target.files[0];
+        if (file) {
+          this.exerciseFileName = file.name;
+          this.exercisePreviewUrl = URL.createObjectURL(file);
+          this.hasExerciseImage = true;
+        }
+      },
+
+      handleExerciseDrop(event) {
+        const file = event.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+          const input = document.getElementById('exercise_image_input');
+          const dt = new DataTransfer();
+          dt.items.add(file);
+          input.files = dt.files;
+          this.exerciseFileName = file.name;
+          this.exercisePreviewUrl = URL.createObjectURL(file);
+          this.hasExerciseImage = true;
+        }
+      },
+
+      removeExerciseImage() {
+        const input = document.getElementById('exercise_image_input');
+        input.value = '';
+        this.hasExerciseImage = false;
+        this.exercisePreviewUrl = '';
+        this.exerciseFileName = '';
+      },
+
+      resetForm() {
+        document.getElementById('tutorForm').reset();
+        this.removeExerciseImage();
+        this.showAttempt = false;
+        document.getElementById('tutor-results-container').innerHTML = '';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+  }
+</script>
+{% endblock %}

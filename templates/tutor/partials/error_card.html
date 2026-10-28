@@ -1,0 +1,27 @@
+<div class="bg-red-50 border-2 border-red-200 p-6 rounded-3xl shadow-sm space-y-4 animate-fade-in">
+  <div class="flex items-start gap-4">
+    <div class="w-10 h-10 rounded-2xl bg-red-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+      <i data-lucide="alert-octagon" class="w-5 h-5"></i>
+    </div>
+    <div class="space-y-1">
+      <h3 class="text-base font-extrabold text-red-950">{{ error_title }}</h3>
+      <p class="text-xs text-red-800 leading-relaxed">{{ error_message }}</p>
+      {% if retry_hint %}
+      <p class="text-xs text-slate-600 mt-2 font-medium bg-white/70 p-2.5 rounded-xl border border-red-200">
+        💡 <span class="font-bold">Next Step:</span> {{ retry_hint }}
+      </p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="pt-2 flex justify-end">
+    <button type="button"
+            onclick="document.getElementById('tutor-form-box').scrollIntoView({behavior: 'smooth'})"
+            class="px-4 py-2 rounded-xl bg-red-600 text-white font-semibold text-xs hover:bg-red-700 transition-colors shadow-sm">
+      Adjust Input & Retry
+    </button>
+  </div>
+</div>
+<script>
+  if (window.lucide) { lucide.createIcons(); }
+</script>

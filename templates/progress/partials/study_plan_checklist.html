@@ -1,0 +1,53 @@
+<div class="space-y-4">
+  
+  <!-- Plan Progress Bar -->
+  <div class="space-y-1.5">
+    <div class="flex items-center justify-between text-xs font-bold">
+      <span class="text-slate-700">Weekly Goal Progress:</span>
+      <span class="text-brand">{{ done_count }} of {{ total_tasks }} done ({{ plan_progress_percent }}%)</span>
+    </div>
+    <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+      <div class="bg-brand h-full rounded-full transition-all duration-300" style="width: {{ plan_progress_percent }}%;"></div>
+    </div>
+  </div>
+
+  <!-- Task List (Monday to Sunday) -->
+  <div class="divide-y divide-slate-100">
+    {% for task in tasks %}
+    <div class="py-3 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <!-- Interactive Checkbox with HTMX -->
+        <button type="button"
+                hx-post="{% url 'toggle_task' task.id %}"
+                hx-target="#study-plan-container"
+                hx-swap="innerHTML"
+                class="w-6 h-6 rounded-lg flex items-center justify-center transition-all border {% if task.done %}bg-emerald-500 border-emerald-500 text-white shadow-sm{% else %}border-slate-300 hover:border-brand bg-white{% endif %}">
+          {% if task.done %}
+          <i data-lucide="check" class="w-4 h-4"></i>
+          {% endif %}
+        </button>
+
+        <div>
+          <span class="text-xs font-bold px-2 py-0.5 rounded-md {% if task.done %}bg-slate-100 text-slate-400 line-through{% else %}bg-brand-50 text-brand{% endif %} mr-2">
+            {{ task.day }}
+          </span>
+          <span class="text-xs {% if task.done %}text-slate-400 line-through{% else %}text-slate-800 font-medium{% endif %}">
+            {{ task.text }}
+          </span>
+        </div>
+      </div>
+
+      {% if task.chapter %}
+      <span class="text-[10px] font-semibold text-slate-400 px-2 py-0.5 bg-slate-50 rounded-full border border-slate-100 hidden sm:inline-block">
+        {{ task.chapter }}
+      </span>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<script>
+  if (window.lucide) { lucide.createIcons(); }
+</script>

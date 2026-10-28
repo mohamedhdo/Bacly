@@ -1,0 +1,32 @@
+<div class="space-y-3">
+  <!-- Student Message Bubble (Right, Brand Blue) -->
+  <div class="flex justify-end">
+    <div class="max-w-md bg-brand text-white p-3.5 rounded-2xl rounded-tr-none text-xs font-medium shadow-sm leading-relaxed">
+      {{ user_msg.content }}
+    </div>
+  </div>
+
+  <!-- Tutor Message Bubble (Left, White with Brand Border) -->
+  <div class="flex justify-start gap-2.5 items-start">
+    <div class="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs flex-shrink-0 mt-1 shadow-sm">
+      <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+    </div>
+    <div class="max-w-xl bg-slate-50 border border-slate-200/80 p-4 rounded-2xl rounded-tl-none text-xs text-slate-800 leading-relaxed shadow-sm font-sans">
+      <div class="font-bold text-[11px] text-brand uppercase mb-1">Bacly Tutor</div>
+      <div class="whitespace-pre-line">{{ tutor_msg.content }}</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  if (window.renderMathInElement) {
+    renderMathInElement(document.getElementById('chat-messages-container'), {
+      delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false}
+      ],
+      throwOnError: false
+    });
+  }
+  if (window.lucide) { lucide.createIcons(); }
+</script>

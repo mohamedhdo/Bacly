@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Tutor Session Review #{{ session.id }} - Bacly{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+
+  <!-- Breadcrumbs & Header -->
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+      <a href="{% url 'history' %}" class="hover:text-brand flex items-center gap-1">
+        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+        <span>Back to History</span>
+      </a>
+      <span>/</span>
+      <span class="text-slate-800">Tutor Session #{{ session.id }}</span>
+    </div>
+    
+    <span class="text-xs text-slate-400">{{ session.created_at|date:"F d, Y • H:i" }}</span>
+  </div>
+
+  <!-- Re-display the Full Tutor Results -->
+  <div class="space-y-6">
+    <!-- Chapter badge & summary -->
+    <div class="bg-white p-6 rounded-3xl shadow-card border border-slate-100 space-y-2">
+      <div class="flex items-center gap-2">
+        <span class="px-3 py-1 rounded-full bg-brand-50 text-brand font-bold text-xs">{{ session.chapter }}</span>
+        {% if session.had_mistake %}
+        <span class="px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-800 font-bold text-xs">Mistake Detected & Corrected</span>
+        {% endif %}
+      </div>
+      <h1 class="text-xl font-bold text-slate-900">{{ session.summary }}</h1>
+      {% if session.input_text %}
+      <div class="p-4 rounded-xl bg-slate-50 border border-slate-100 text-xs font-mono text-slate-700 whitespace-pre-line">
+        {{ session.input_text }}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Solution Steps -->
+    <div class="bg-white p-6 lg:p-8 rounded-3xl shadow-card border border-slate-100 space-y-4">
+      <h3 class="text-base font-extrabold text-slate-900 border-b border-slate-100 pb-3">Complete Step-by-Step Solution</h3>
+      <div class="space-y-3">
+        {% for step in result.solution_steps %}
+        <div class="flex items-start gap-3 p-3.5 rounded-xl bg-slate-50/70 text-xs text-slate-800 leading-relaxed font-sans">
+          <span class="w-6 h-6 rounded bg-brand text-white font-bold flex items-center justify-center flex-shrink-0 mt-0.5 text-[11px]">{{ forloop.counter }}</span>
+          <div class="flex-1">{{ step }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Mistake Review if applicable -->
+    {% if session.had_mistake and result.mistake %}
+    <div class="bg-orange-50 border-2 border-orange-200 p-6 rounded-3xl space-y-3">
+      <div class="flex items-center gap-2 text-orange-900 font-bold text-sm">
+        <i data-lucide="alert-triangle" class="w-5 h-5 text-orange-600"></i>
+        <span>Student Attempt Correction</span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+        <div class="bg-white/90 p-3.5 rounded-xl border border-orange-200">
+          <div class="font-bold text-orange-800 mb-1">Issue in: {{ result.mistake.step }}</div>
+          <p class="text-slate-700">{{ result.mistake.explanation }}</p>
+        </div>
+        <div class="bg-emerald-50/90 p-3.5 rounded-xl border border-emerald-200">
+          <div class="font-bold text-emerald-800 mb-1">Bac Standard Fix:</div>
+          <p class="text-slate-800">{{ result.mistake.correction }}</p>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Chat History -->
+    {% if session.messages.all %}
+    <div class="bg-white p-6 rounded-3xl shadow-card border border-slate-100 space-y-4">
+      <h3 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">Follow-up Discussion</h3>
+      <div class="space-y-3">
+        {% for msg in session.messages.all %}
+        <div class="flex {% if msg.role == 'user' %}justify-end{% else %}justify-start{% endif %}">
+          <div class="max-w-md p-3.5 rounded-2xl text-xs {% if msg.role == 'user' %}bg-brand text-white rounded-tr-none{% else %}bg-slate-100 text-slate-800 rounded-tl-none{% endif %}">
+            <div class="font-bold text-[10px] mb-1 opacity-80 capitalize">{{ msg.role }}</div>
+            <div class="whitespace-pre-line">{{ msg.content }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+
+</div>
+
+<script>
+  if (window.renderMathInElement) {
+    renderMathInElement(document.body, {
+      delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false}
+      ],
+      throwOnError: false
+    });
+  }
+</script>
+{% endblock %}

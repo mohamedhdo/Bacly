@@ -1,0 +1,96 @@
+<div class="bg-white rounded-3xl shadow-card border border-slate-100 overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-sm">
+      <thead class="bg-slate-50 text-[11px] font-bold uppercase text-slate-400 border-b border-slate-100">
+        <tr>
+          <th class="py-3.5 px-6">Student</th>
+          <th class="py-3.5 px-4">Stream</th>
+          <th class="py-3.5 px-4">Avg Score</th>
+          <th class="py-3.5 px-4">Weakest Chapter</th>
+          <th class="py-3.5 px-4">Last Active</th>
+          <th class="py-3.5 px-4">Status</th>
+          <th class="py-3.5 px-6 text-right">Action</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 text-xs">
+        {% for st in students %}
+        <tr class="hover:bg-slate-50/80 cursor-pointer transition-colors"
+            @click="drawerOpen = true; openStudentModal({{ st.id }})">
+          
+          <!-- Name & Email -->
+          <td class="py-4 px-6">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full bg-brand/10 text-brand font-bold flex items-center justify-center text-xs flex-shrink-0">
+                {{ st.name|slice:":2"|upper }}
+              </div>
+              <div>
+                <div class="font-bold text-slate-900">{{ st.name }}</div>
+                <div class="text-[11px] text-slate-400">{{ st.email }}</div>
+              </div>
+            </div>
+          </td>
+
+          <!-- Stream -->
+          <td class="py-4 px-4 font-medium text-slate-600">{{ st.stream }}</td>
+
+          <!-- Avg Score /20 -->
+          <td class="py-4 px-4">
+            <span class="font-black text-sm {% if st.avg_score_20 >= 14 %}text-emerald-600{% elif st.avg_score_20 >= 10 %}text-brand{% else %}text-red-600{% endif %}">
+              {{ st.avg_score_20 }} <span class="text-[10px] text-slate-400 font-semibold">/ 20</span>
+            </span>
+          </td>
+
+          <!-- Weakest Chapter -->
+          <td class="py-4 px-4">
+            <span class="px-2.5 py-1 rounded-full bg-orange-50 text-orange-800 font-semibold text-[11px] border border-orange-100">
+              {{ st.weakest_chapter }}
+            </span>
+          </td>
+
+          <!-- Last Active -->
+          <td class="py-4 px-4 text-slate-500">
+            {% if st.days_inactive >= 7 %}
+            <span class="text-red-600 font-bold">{{ st.last_active }} ({{ st.days_inactive }}d ago)</span>
+            {% else %}
+            <span>{{ st.last_active }}</span>
+            {% endif %}
+          </td>
+
+          <!-- Status Badge -->
+          <td class="py-4 px-4">
+            {% if st.needs_attention %}
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-red-50 text-red-700 font-bold text-[11px] border border-red-200">
+              <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+              <span>Needs Attention</span>
+            </span>
+            {% else %}
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 font-bold text-[11px] border border-emerald-200">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              <span>On Track</span>
+            </span>
+            {% endif %}
+          </td>
+
+          <!-- Action -->
+          <td class="py-4 px-6 text-right">
+            <button type="button" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 font-bold text-[11px] text-slate-700 shadow-sm">
+              View Profile
+            </button>
+          </td>
+
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="py-12 text-center text-slate-400">
+            No students found matching your criteria.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  if (window.lucide) { lucide.createIcons(); }
+</script>

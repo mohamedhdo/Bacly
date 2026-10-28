@@ -1,0 +1,58 @@
+<div class="bg-white p-6 rounded-3xl shadow-card border border-slate-100">
+  {% if items %}
+  <div class="divide-y divide-slate-100">
+    {% for item in items %}
+    <a href="{{ item.url }}" class="py-4 flex items-center justify-between hover:bg-slate-50 -mx-3 px-3 rounded-2xl transition-colors group">
+      
+      <div class="flex items-center gap-3.5 min-w-0">
+        <!-- Type Icon -->
+        <div class="w-10 h-10 rounded-2xl {% if item.type == 'tutor' %}bg-amber-50 text-amber-600{% else %}bg-emerald-50 text-accent{% endif %} flex items-center justify-center flex-shrink-0">
+          <i data-lucide="{% if item.type == 'tutor' %}sparkles{% else %}check-square{% endif %}" class="w-5 h-5"></i>
+        </div>
+
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-slate-900 group-hover:text-brand truncate">{{ item.title }}</span>
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 flex-shrink-0">{{ item.chapter }}</span>
+            
+            {% if item.had_mistake %}
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 flex-shrink-0">
+              Mistake Detected
+            </span>
+            {% endif %}
+
+            {% if item.score is not None %}
+            <span class="text-[10px] font-black px-2 py-0.5 rounded-full {% if item.score >= 8 %}bg-emerald-100 text-emerald-800{% else %}bg-slate-100 text-slate-800{% endif %} flex-shrink-0">
+              {{ item.score }}/10
+            </span>
+            {% endif %}
+          </div>
+          <p class="text-xs text-slate-500 truncate mt-1 max-w-xl">{{ item.description }}</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 flex-shrink-0">
+        <span class="text-xs text-slate-400">{{ item.created_at|date:"M d, Y" }}</span>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform"></i>
+      </div>
+
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <!-- Empty State -->
+  <div class="py-12 text-center space-y-3">
+    <div class="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+      <i data-lucide="inbox" class="w-6 h-6"></i>
+    </div>
+    <div>
+      <h3 class="text-sm font-bold text-slate-700">No matching history records</h3>
+      <p class="text-xs text-slate-400 mt-0.5">Try clearing your search query or selecting "All Chapters".</p>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  if (window.lucide) { lucide.createIcons(); }
+</script>

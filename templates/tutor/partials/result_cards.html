@@ -1,0 +1,227 @@
+<!-- TUTOR RESULTS CONTAINER -->
+<div class="space-y-6 animate-fade-in" x-data="{ activeAnswer: null }">
+
+  <!-- CARD 1: CHAPTER BADGE & EXERCISE SUMMARY -->
+  <div class="bg-white p-6 rounded-3xl shadow-card border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div class="space-y-1">
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-50 text-brand font-bold text-xs">
+          <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+          <span>{{ result.chapter }}</span>
+        </span>
+        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-accent font-semibold text-xs">
+          <i data-lucide="check" class="w-3.5 h-3.5"></i>
+          <span>Solved</span>
+        </span>
+      </div>
+      <h2 class="text-base font-bold text-slate-900 mt-2">Exercise Statement & Target</h2>
+      <p class="text-sm text-slate-600 leading-relaxed">{{ result.exercise_summary }}</p>
+    </div>
+    
+    <div class="self-start sm:self-center flex-shrink-0">
+      <a href="{% url 'history_detail_tutor' session.id %}" target="_blank" class="text-xs font-semibold text-brand hover:underline inline-flex items-center gap-1">
+        <span>Saved to History #{{ session.id }}</span>
+        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+      </a>
+    </div>
+  </div>
+
+  <!-- CARD 3: "WHERE YOU WENT WRONG" (ORANGE CARD, ONLY IF MISTAKE EXISTS) -->
+  {% if had_mistake and mistake %}
+  <div class="bg-orange-50/90 border-2 border-orange-200 p-6 rounded-3xl shadow-sm space-y-3">
+    <div class="flex items-center gap-2.5 text-orange-800">
+      <div class="w-9 h-9 rounded-xl bg-orange-500 text-white flex items-center justify-center flex-shrink-0 shadow-sm">
+        <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <h3 class="text-base font-extrabold text-orange-950">Where You Went Wrong</h3>
+        <p class="text-xs text-orange-800">Identified in: <span class="font-bold">{{ mistake.step }}</span></p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+      <div class="p-4 rounded-2xl bg-white/80 border border-orange-200/80 space-y-1">
+        <span class="text-xs font-bold uppercase tracking-wider text-orange-700 flex items-center gap-1">
+          <i data-lucide="x-circle" class="w-4 h-4 text-red-500"></i>
+          <span>Why this is wrong</span>
+        </span>
+        <p class="text-xs text-slate-700 leading-relaxed">{{ mistake.explanation }}</p>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200/80 space-y-1">
+        <span class="text-xs font-bold uppercase tracking-wider text-emerald-800 flex items-center gap-1">
+          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+          <span>Correct method (Bac Standard)</span>
+        </span>
+        <p class="text-xs text-slate-800 leading-relaxed font-medium">{{ mistake.correction }}</p>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- CARD 2: NUMBERED STEP-BY-STEP SOLUTION -->
+  <div class="bg-white p-6 lg:p-8 rounded-3xl shadow-card border border-slate-100 space-y-5">
+    <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-brand/10 text-brand flex items-center justify-center">
+          <i data-lucide="list-ordered" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-extrabold text-slate-900">Step-by-Step Solution</h3>
+          <p class="text-xs text-slate-500">Double-checked calculations with Algerian curriculum standards</p>
+        </div>
+      </div>
+      <span class="text-xs font-semibold text-slate-400">{{ steps|length }} steps</span>
+    </div>
+
+    <div class="space-y-4">
+      {% for step in steps %}
+      <div class="flex items-start gap-3.5 p-4 rounded-2xl bg-slate-50/70 border border-slate-100 text-sm text-slate-800 leading-relaxed">
+        <div class="w-7 h-7 rounded-lg bg-brand text-white font-bold text-xs flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm">
+          {{ forloop.counter }}
+        </div>
+        <div class="flex-1 font-sans">
+          {{ step }}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- CARD 5: TIP WITH LIGHTBULB ICON -->
+  {% if tip %}
+  <div class="bg-blue-50/70 border border-blue-200 p-5 rounded-3xl flex items-start gap-4 text-brand-900">
+    <div class="w-10 h-10 rounded-2xl bg-brand text-white flex items-center justify-center flex-shrink-0 shadow-sm shadow-brand/20">
+      <i data-lucide="lightbulb" class="w-5 h-5 text-amber-300"></i>
+    </div>
+    <div>
+      <h4 class="text-xs font-extrabold uppercase tracking-wider text-brand">Bac Exam Tip</h4>
+      <p class="text-xs font-medium text-slate-700 mt-1 leading-relaxed">{{ tip }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- CARD 4: PRACTICE (3 EXERCISES WITH ALPINE TOGGLE) -->
+  {% if practice_items %}
+  <div class="bg-white p-6 lg:p-8 rounded-3xl shadow-card border border-slate-100 space-y-4">
+    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-xl bg-accent/10 text-accent flex items-center justify-center">
+          <i data-lucide="check-check" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-extrabold text-slate-900">Similar Practice Exercises</h3>
+          <p class="text-xs text-slate-500">Test your mastery of this theorem before moving on</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="space-y-3">
+      {% for ex in practice_items %}
+      <div class="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 space-y-3">
+        <div class="flex items-start justify-between gap-4">
+          <div class="text-sm font-medium text-slate-800">
+            <span class="font-bold text-slate-400 mr-1.5">Q{{ forloop.counter }}.</span>
+            {{ ex.question }}
+          </div>
+          <button type="button"
+                  @click="activeAnswer = (activeAnswer === {{ forloop.counter }} ? null : {{ forloop.counter }})"
+                  class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 bg-white hover:bg-slate-100 transition-colors flex-shrink-0 shadow-sm">
+            <span x-text="activeAnswer === {{ forloop.counter }} ? 'Hide Answer' : 'Show Answer'">Show Answer</span>
+          </button>
+        </div>
+
+        <!-- Collapsible Answer -->
+        <div x-show="activeAnswer === {{ forloop.counter }}" x-cloak class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-950 font-medium">
+          <div class="font-bold text-emerald-800 text-[11px] uppercase mb-1">Target Answer:</div>
+          <div>{{ ex.answer }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- FOLLOW-UP CHAT UNDER RESULTS -->
+  <div class="bg-white p-6 lg:p-8 rounded-3xl shadow-card border border-slate-100 space-y-4" x-data="{ chatInput: '' }">
+    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-brand text-white flex items-center justify-center shadow-sm">
+          <i data-lucide="message-square" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-extrabold text-slate-900">Have a Follow-up Question?</h3>
+          <p class="text-xs text-slate-500">Ask Bacly to clarify any theorem or explain an alternative method</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Suggested Question Chips -->
+    <div class="flex flex-wrap gap-2 pt-1">
+      <button type="button"
+              @click="chatInput = 'Why did we use this theorem?'; $nextTick(() => $refs.msgInput.focus())"
+              class="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-brand-50 hover:text-brand text-xs font-medium text-slate-600 transition-colors">
+        💡 "Why did we use this theorem?"
+      </button>
+      <button type="button"
+              @click="chatInput = 'Show me another method to solve this'; $nextTick(() => $refs.msgInput.focus())"
+              class="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-brand-50 hover:text-brand text-xs font-medium text-slate-600 transition-colors">
+        🔄 "Show me another method"
+      </button>
+      <button type="button"
+              @click="chatInput = 'What are common traps in Bac exams for this topic?'; $nextTick(() => $refs.msgInput.focus())"
+              class="px-3 py-1.5 rounded-full bg-slate-100 hover:bg-brand-50 hover:text-brand text-xs font-medium text-slate-600 transition-colors">
+        ⚠️ "What are common traps for this?"
+      </button>
+    </div>
+
+    <!-- Chat Messages Flow Container -->
+    <div id="chat-messages-container" class="space-y-4 pt-2">
+      <!-- Dynamic follow-up messages append here -->
+    </div>
+
+    <!-- Chat Typing Indicator -->
+    <div id="chat-indicator" class="htmx-indicator py-2 flex items-center gap-2 text-xs text-slate-400">
+      <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-brand"></i>
+      <span>Bacly is composing response...</span>
+    </div>
+
+    <!-- Chat Input Form -->
+    <form hx-post="{% url 'tutor_chat' session.id %}"
+          hx-target="#chat-messages-container"
+          hx-swap="beforeend"
+          hx-indicator="#chat-indicator"
+          @submit="setTimeout(() => { chatInput = ''; }, 50)"
+          class="flex items-center gap-2 pt-2">
+      {% csrf_token %}
+      <input type="text"
+             name="message"
+             x-ref="msgInput"
+             x-model="chatInput"
+             required
+             placeholder="Type your question about this solution..."
+             class="flex-1 px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-slate-50/50">
+      <button type="submit"
+              class="px-5 py-3 rounded-2xl bg-brand text-white font-bold text-sm hover:bg-brand-800 transition-colors shadow-sm flex items-center gap-1.5 flex-shrink-0">
+        <span>Send</span>
+        <i data-lucide="send" class="w-4 h-4"></i>
+      </button>
+    </form>
+  </div>
+
+</div>
+
+<script>
+  // Re-run Math and Icons after injecting results
+  if (window.renderMathInElement) {
+    renderMathInElement(document.getElementById('tutor-results-container'), {
+      delimiters: [
+        {left: '$$', right: '$$', display: true},
+        {left: '$', right: '$', display: false}
+      ],
+      throwOnError: false
+    });
+  }
+  if (window.lucide) { lucide.createIcons(); }
+  document.getElementById('tutor-results-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+</script>

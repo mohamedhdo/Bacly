@@ -1,0 +1,8 @@
+{
+  "name": "Bacly - Your Private Bac Tutor",
+  "description": "AI tutor platform for Algerian students preparing for the Baccalauréat in Mathematics (3rd Year Secondary).",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

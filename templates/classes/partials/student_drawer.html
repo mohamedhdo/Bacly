@@ -1,0 +1,68 @@
+<div class="space-y-6">
+  
+  <!-- Header with Close Button -->
+  <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+    <div class="flex items-center gap-3">
+      <div class="w-12 h-12 rounded-2xl bg-brand/10 text-brand font-black text-base flex items-center justify-center">
+        {{ student.get_initials }}
+      </div>
+      <div>
+        <h2 class="text-lg font-black text-slate-900">{{ student.get_full_name|default:student.username }}</h2>
+        <p class="text-xs text-slate-400">{{ student.stream }} • {{ student.email }}</p>
+      </div>
+    </div>
+    <button type="button" @click="drawerOpen = false" class="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100">
+      <i data-lucide="x" class="w-5 h-5"></i>
+    </button>
+  </div>
+
+  <!-- Chapter Masteries List -->
+  <div class="space-y-3">
+    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Curriculum Mastery Breakdown</h3>
+    <div class="space-y-2.5">
+      {% for ch, score in sorted_masteries %}
+      <div class="space-y-1">
+        <div class="flex justify-between text-xs font-medium">
+          <span class="text-slate-700">{{ ch }}</span>
+          <span class="font-bold {% if score < 40 %}text-red-600{% elif score <= 70 %}text-orange-600{% else %}text-emerald-600{% endif %}">{{ score }}%</span>
+        </div>
+        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+          <div class="h-full rounded-full {% if score < 40 %}bg-red-500{% elif score <= 70 %}bg-orange-500{% else %}bg-emerald-500{% endif %}"
+               style="width: {{ score }}%;"></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Recent Submissions -->
+  {% if recent_results %}
+  <div class="space-y-3 pt-2 border-t border-slate-100">
+    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Recent Practice Activity</h3>
+    <div class="divide-y divide-slate-100 text-xs">
+      {% for r in recent_results %}
+      <div class="py-2.5 flex items-center justify-between">
+        <div>
+          <span class="font-bold text-slate-800">{{ r.chapter }}</span>
+          <p class="text-[11px] text-slate-400">{{ r.created_at|date:"M d, H:i" }}</p>
+        </div>
+        <span class="px-2 py-0.5 rounded font-black {% if r.score >= 8 %}bg-emerald-50 text-emerald-700{% else %}bg-slate-100 text-slate-700{% endif %}">
+          {{ r.score }}/10
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Teacher Action Note -->
+  <div class="p-4 rounded-2xl bg-blue-50/60 border border-blue-200 text-xs text-brand space-y-1">
+    <div class="font-bold">Teacher Intervention Tip:</div>
+    <p class="text-slate-600">Assign 2 targeted exercises in <span class="font-bold text-brand">{{ sorted_masteries.0.0 }}</span> to help this student raise their score before the upcoming Bac exam.</p>
+  </div>
+
+</div>
+
+<script>
+  if (window.lucide) { lucide.createIcons(); }
+</script>

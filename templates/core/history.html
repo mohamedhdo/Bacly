@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Activity History - Bacly{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
+        <span class="w-8 h-8 rounded-xl bg-brand text-white flex items-center justify-center text-sm shadow-md shadow-brand/20">
+          <i data-lucide="archive" class="w-5 h-5"></i>
+        </span>
+        <span>Revision & Session History</span>
+      </h1>
+      <p class="text-sm text-slate-500 mt-1">
+        Review past step-by-step tutor explanations, mistake corrections, and practice drill scores.
+      </p>
+    </div>
+  </div>
+
+  <!-- SEARCH & FILTER BAR (LIVE HTMX) -->
+  <div class="bg-white p-5 rounded-3xl shadow-card border border-slate-100 space-y-3">
+    
+    <!-- Search Input -->
+    <div class="relative">
+      <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-4 top-3.5"></i>
+      <input type="text"
+             name="q"
+             placeholder="Search by keyword, formula, or topic..."
+             hx-get="{% url 'history' %}"
+             hx-trigger="keyup changed delay:300ms, search"
+             hx-target="#history-list-container"
+             hx-include="[name='chapter']"
+             class="w-full pl-11 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-slate-50/50">
+    </div>
+
+    <!-- Chapter Filter Chips -->
+    <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+      <a href="{% url 'history' %}"
+         hx-get="{% url 'history' %}"
+         hx-target="#history-list-container"
+         class="px-3 py-1.5 rounded-full font-bold transition-colors whitespace-nowrap {% if not selected_chapter %}bg-brand text-white{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200{% endif %}">
+        All Chapters
+      </a>
+      {% for ch in chapters %}
+      <a href="{% url 'history' %}?chapter={{ ch|urlencode }}"
+         hx-get="{% url 'history' %}?chapter={{ ch|urlencode }}"
+         hx-target="#history-list-container"
+         class="px-3 py-1.5 rounded-full font-bold transition-colors whitespace-nowrap {% if selected_chapter == ch %}bg-brand text-white{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200{% endif %}">
+        {{ ch }}
+      </a>
+      {% endfor %}
+    </div>
+
+  </div>
+
+  <!-- HISTORY ITEMS CONTAINER -->
+  <div id="history-list-container">
+    {% include "core/partials/history_list.html" %}
+  </div>
+
+</div>
+{% endblock %}

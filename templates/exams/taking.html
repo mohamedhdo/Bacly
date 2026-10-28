@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Taking Mock Exam #{{ exam.id }} - Bacly{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6" x-data="examApp({{ remaining_seconds }})">
+
+  <!-- STICKY TOP BAR COUNTDOWN TIMER -->
+  <div class="sticky top-0 z-30 bg-white/95 backdrop-blur border border-slate-200 shadow-md p-4 rounded-2xl flex items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white transition-colors"
+           :class="remaining < 300 ? 'bg-red-600 animate-pulse' : (remaining < 900 ? 'bg-orange-500' : 'bg-slate-900')">
+        <i data-lucide="clock" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <div class="text-[10px] uppercase font-bold text-slate-400">Time Remaining</div>
+        <div class="text-xl font-black font-mono tracking-tight"
+             :class="remaining < 300 ? 'text-red-600' : (remaining < 900 ? 'text-orange-600' : 'text-slate-900')"
+             x-text="formatTime(remaining)">
+          --:--
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit Button & Confirmation trigger -->
+    <div class="flex items-center gap-2">
+      <button type="button"
+              @click="confirmModal = true"
+              class="px-5 py-2.5 rounded-xl bg-purple-600 text-white font-bold text-xs hover:bg-purple-700 transition-colors shadow-sm flex items-center gap-1.5">
+        <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+        <span>Submit Exam</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- EXAM FORM -->
+  <form id="examForm" method="POST" action="{% url 'exam_submit' exam.id %}">
+    {% csrf_token %}
+
+    <!-- EXERCISE TABS -->
+    <div class="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-200">
+      {% for ex in exercises %}
+      <button type="button"
+              @click="activeExercise = {{ ex.id }}"
+              class="px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all flex-shrink-0"
+              :class="activeExercise === {{ ex.id }} ? 'bg-purple-600 text-white shadow-sm' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'">
+        <span>Exercise {{ ex.id }}</span>
+        <span class="text-[10px] opacity-80">({{ ex.points }} pts)</span>
+        <!-- Answered indicator dot -->
+        <span class="w-2 h-2 rounded-full bg-emerald-400" x-show="hasAnswered({{ ex.id }})" x-cloak></span>
+      </button>
+      {% endfor %}
+    </div>
+
+    <!-- EXERCISE PANELS -->
+    <div class="space-y-6 mt-4">
+      {% for ex in exercises %}
+      <div x-show="activeExercise === {{ ex.id }}" class="space-y-5 animate-fade-in">
+        
+        <!-- Exercise Card -->
+        <div class="bg-white p-6 lg:p-8 rounded-3xl shadow-card border border-slate-100 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <span class="text-xs font-bold text-purple-600 uppercase tracking-wider">{{ ex.chapter }}</span>
+              <h2 class="text-lg font-extrabold text-slate-900 mt-0.5">{{ ex.title }}</h2>
+            </div>
+            <span class="px-3 py-1 rounded-full bg-purple-50 text-purple-700 font-extrabold text-xs">
+              {{ ex.points }} / 20 pts
+            </span>
+          </div>
+
+          <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 text-sm text-slate-900 leading-relaxed font-sans whitespace-pre-line">
+            {{ ex.question }}
+          </div>
+        </div>
+
+        <!-- Answer Textarea for this exercise -->
+        <div class="bg-white p-6 rounded-3xl shadow-card border border-slate-100 space-y-3">
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+            Your Response for Exercise {{ ex.id }}
+          </label>
+          <textarea name="answer_{{ ex.id }}"
+                    rows="6"
+                    placeholder="Write your mathematical derivation, induction steps, or algebraic justification here..."
+                    @input="answers[{{ ex.id }}] = $event.target.value"
+                    class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-purple-600 font-mono bg-slate-50/50"></textarea>
+          
+          <div class="flex items-center justify-between text-xs text-slate-400 pt-1">
+            <span>Write LaTeX formulas between $ signs if desired</span>
+            <span x-text="(answers[{{ ex.id }}] || '').length + ' characters'"></span>
+          </div>
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- CONFIRM SUBMISSION MODAL -->
+    <div x-show="confirmModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" @click="confirmModal = false"></div>
+      <div class="relative bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-4 text-center">
+        <div class="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center mx-auto">
+          <i data-lucide="check-circle" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-slate-900">Submit Your Bac Exam?</h3>
+          <p class="text-xs text-slate-500 mt-1">
+            Your answers will be graded by the Bacly AI engine out of 20 points according to Algerian national marking criteria.
+          </p>
+        </div>
+
+        <div class="pt-2 space-y-2">
+          <button type="button"
+                  @click="submitExam()"
+                  class="w-full py-3.5 rounded-xl bg-purple-600 text-white font-bold text-sm hover:bg-purple-700 shadow-md">
+            Confirm & Finalize Grade
+          </button>
+          <button type="button" @click="confirmModal = false" class="w-full py-2.5 text-xs font-semibold text-slate-500 hover:text-slate-700">
+            Return to Questions
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </form>
+
+</div>
+
+<script>
+  function examApp(initialRemainingSeconds) {
+    return {
+      remaining: initialRemainingSeconds,
+      activeExercise: 1,
+      confirmModal: false,
+      answers: {},
+      timer: null,
+
+      init() {
+        this.timer = setInterval(() => {
+          if (this.remaining > 0) {
+            this.remaining--;
+          } else {
+            clearInterval(this.timer);
+            // Auto-submit at zero
+            this.submitExam();
+          }
+        }, 1000);
+      },
+
+      formatTime(seconds) {
+        const hrs = Math.floor(seconds / 3600);
+        const mins = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+        const pad = n => n.toString().padStart(2, '0');
+        if (hrs > 0) {
+          return `${hrs}:${pad(mins)}:${pad(secs)}`;
+        }
+        return `${pad(mins)}:${pad(secs)}`;
+      },
+
+      hasAnswered(exId) {
+        return Boolean(this.answers[exId] && this.answers[exId].trim().length > 5);
+      },
+
+      submitExam() {
+        document.getElementById('examForm').submit();
+      }
+    }
+  }
+</script>
+{% endblock %}

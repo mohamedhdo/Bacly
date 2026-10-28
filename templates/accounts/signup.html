@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up - Bacly{% endblock %}
+
+{% block public_content %}
+<div class="sm:mx-auto sm:w-full sm:max-w-md">
+  <div class="flex justify-center">
+    <div class="w-12 h-12 rounded-2xl bg-brand flex items-center justify-center text-white shadow-lg shadow-brand/20">
+      <i data-lucide="graduation-cap" class="w-7 h-7"></i>
+    </div>
+  </div>
+  <h2 class="mt-4 text-center text-2xl font-bold tracking-tight text-slate-900">
+    Create your Bacly Account
+  </h2>
+  <p class="mt-1 text-center text-xs font-medium text-slate-500">
+    Start your tailored Algerian Bac mathematics preparation today
+  </p>
+</div>
+
+<div class="mt-6 sm:mx-auto sm:w-full sm:max-w-md px-4">
+  <div class="bg-white py-8 px-6 shadow-soft rounded-3xl border border-slate-100 sm:px-10">
+    <form class="space-y-4" method="POST" action="{% url 'signup' %}">
+      {% csrf_token %}
+      
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">First Name</label>
+          {{ form.first_name }}
+          <div class="text-[11px] text-red-500">{{ form.first_name.errors }}</div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Last Name</label>
+          {{ form.last_name }}
+          <div class="text-[11px] text-red-500">{{ form.last_name.errors }}</div>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Username</label>
+        {{ form.username }}
+        <div class="text-[11px] text-red-500">{{ form.username.errors }}</div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Email</label>
+        {{ form.email }}
+        <div class="text-[11px] text-red-500">{{ form.email.errors }}</div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Role</label>
+          {{ form.role }}
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Stream</label>
+          {{ form.stream }}
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
+        {{ form.password1 }}
+        <div class="text-[11px] text-red-500">{{ form.password1.errors }}</div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Confirm Password</label>
+        {{ form.password2 }}
+        <div class="text-[11px] text-red-500">{{ form.password2.errors }}</div>
+      </div>
+
+      <button type="submit" class="w-full mt-2 py-3 px-4 rounded-xl bg-brand text-white font-semibold text-sm hover:bg-brand-800 transition-colors shadow-md shadow-brand/20">
+        Create Account
+      </button>
+    </form>
+
+    <div class="mt-6 text-center text-xs text-slate-500">
+      Already have an account?
+      <a href="{% url 'login' %}" class="font-semibold text-brand hover:underline">Sign in</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Add tailwind classes to form inputs
+  document.querySelectorAll('input, select').forEach(el => {
+    if (el.type !== 'submit' && el.type !== 'hidden') {
+      el.classList.add('w-full', 'px-3.5', 'py-2', 'rounded-xl', 'border', 'border-slate-200', 'text-sm', 'bg-slate-50/50', 'focus:outline-none', 'focus:ring-2', 'focus:ring-brand');
+    }
+  });
+</script>
+{% endblock %}

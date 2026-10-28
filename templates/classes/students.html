@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Students Roster - Bacly{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6" x-data="{ selectedStudentId: null, drawerOpen: false }">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
+        <span class="w-8 h-8 rounded-xl bg-brand text-white flex items-center justify-center text-sm shadow-md shadow-brand/20">
+          <i data-lucide="users" class="w-5 h-5"></i>
+        </span>
+        <span>Students Roster & Performance</span>
+      </h1>
+      <p class="text-sm text-slate-500 mt-1">
+        Track individual student mastery, detect students falling behind, and review learning gaps.
+      </p>
+    </div>
+
+    <!-- Filter chips -->
+    <div class="flex items-center gap-2">
+      <a href="{% url 'teacher_students' %}"
+         hx-get="{% url 'teacher_students' %}"
+         hx-target="#students-table-container"
+         class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors {% if not status_filter %}bg-slate-900 text-white{% else %}bg-slate-100 text-slate-700 hover:bg-slate-200{% endif %}">
+        All ({{ students|length }})
+      </a>
+      <a href="{% url 'teacher_students' %}?status=attention"
+         hx-get="{% url 'teacher_students' %}?status=attention"
+         hx-target="#students-table-container"
+         class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors {% if status_filter == 'attention' %}bg-orange-600 text-white{% else %}bg-orange-50 text-orange-700 hover:bg-orange-100{% endif %}">
+        Needs Attention
+      </a>
+      <a href="{% url 'teacher_students' %}?status=ontrack"
+         hx-get="{% url 'teacher_students' %}?status=ontrack"
+         hx-target="#students-table-container"
+         class="px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors {% if status_filter == 'ontrack' %}bg-emerald-600 text-white{% else %}bg-emerald-50 text-emerald-700 hover:bg-emerald-100{% endif %}">
+        On Track
+      </a>
+    </div>
+  </div>
+
+  <!-- SEARCH BAR -->
+  <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+    <div class="relative">
+      <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-4 top-3.5"></i>
+      <input type="text"
+             name="q"
+             placeholder="Search student by name, username, or stream..."
+             hx-get="{% url 'teacher_students' %}"
+             hx-trigger="keyup changed delay:300ms"
+             hx-target="#students-table-container"
+             hx-include="[name='status']"
+             class="w-full pl-11 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-slate-50/50">
+    </div>
+  </div>
+
+  <!-- TABLE CONTAINER (SWAPPED VIA HTMX) -->
+  <div id="students-table-container">
+    {% include "classes/partials/students_table.html" %}
+  </div>
+
+  <!-- STUDENT DETAIL DRAWER / MODAL -->
+  <div x-cloak x-show="drawerOpen" class="fixed inset-0 z-50 flex items-center justify-end">
+    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" @click="drawerOpen = false"></div>
+    <div class="relative w-full max-w-xl h-full bg-white shadow-2xl p-6 overflow-y-auto space-y-6" id="student-drawer-content">
+      <!-- Drawer content loaded via HTMX -->
+      <div class="py-16 text-center text-slate-400 space-y-2">
+        <i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto text-brand"></i>
+        <p class="text-xs">Loading student breakdown...</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function openStudentModal(studentId) {
+    htmx.ajax('GET', `/teacher/student/${studentId}/detail/`, {
+      target: '#student-drawer-content',
+      swap: 'innerHTML'
+    });
+  }
+</script>
+{% endblock %}
