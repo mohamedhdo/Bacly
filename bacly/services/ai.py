@@ -14,9 +14,6 @@ BASE_SYSTEM_PROMPT = (
     "Return ONLY valid JSON matching the schema."
 )
 
-_LIVE_API_WORKING = None  # None = not tested yet; True = working; False = failed, use mock
-
-
 def is_mock_mode_active():
     """
     Checks if mock mode should be used.
@@ -45,37 +42,47 @@ def strip_json_fences(raw_text):
 def call_ai(system_prompt, user_text, images=None, schema=None, feature="tutor", fallback_handler=None):
     """
     Unified AI service layer with timeout, retry, json parsing, and mock mode fallback.
+    Tries providers in order: Gemini, then OpenRouter, then mock fallback.
     """
-    global _LIVE_API_WORKING
     images = images or []
-    provider = getattr(settings, "LLM_PROVIDER", "gemini")
     gemini_key = getattr(settings, "GEMINI_API_KEY", "") or os.getenv("GEMINI_API_KEY", "")
+    openrouter_key = getattr(settings, "OPENROUTER_API_KEY", "") or os.getenv("OPENROUTER_API_KEY", "")
 
-    # If no key is configured, directly use fallback
-    if not gemini_key:
+    # Build list of providers to try (in order)
+    providers = []
+    if gemini_key:
+        providers.append(("gemini", gemini_key))
+    if openrouter_key:
+        providers.append(("openrouter", openrouter_key))
+
+    # No keys configured at all -> mock
+    if not providers:
         if fallback_handler:
             return fallback_handler()
         return mock_ai.get_mock_tutor_response()
 
-    # Attempt live call with 1 retry
-    for attempt in range(2):
-        try:
-            if provider == "gemini":
-                result = _call_gemini(system_prompt, user_text, images, gemini_key)
-            else:
-                result = _call_openrouter(system_prompt, user_text, images)
+    last_error = None
+    for provider_name, api_key in providers:
+        for attempt in range(2):
+            try:
+                if provider_name == "gemini":
+                    result = _call_gemini(system_prompt, user_text, images, api_key)
+                else:
+                    result = _call_openrouter(system_prompt, user_text, images)
 
-            cleaned = strip_json_fences(result)
-            parsed = json.loads(cleaned)
-            _LIVE_API_WORKING = True
-            return parsed
-        except Exception as e:
-            # On first attempt failure, retry once. On second failure, fall back to mock for this request only.
-            if attempt == 1:
-                _LIVE_API_WORKING = False
-                if fallback_handler:
-                    return fallback_handler()
-                return mock_ai.get_mock_tutor_response()
+                cleaned = strip_json_fences(result)
+                parsed = json.loads(cleaned)
+                return parsed
+            except Exception as e:
+                last_error = e
+                # On first attempt failure, retry once. On second failure, try next provider.
+                if attempt == 1:
+                    break
+
+    # All providers failed -> mock fallback
+    if fallback_handler:
+        return fallback_handler()
+    return mock_ai.get_mock_tutor_response()
 
 
 def _call_gemini(system_prompt, user_text, images, api_key):
