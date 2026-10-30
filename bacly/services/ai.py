@@ -19,13 +19,12 @@ _LIVE_API_WORKING = None  # None = not tested yet; True = working; False = faile
 
 def is_mock_mode_active():
     """
-    Checks if mock mode is active (if key is empty, invalid, or API unreachable).
+    Checks if mock mode should be used.
+    Returns True only if no API key is configured. The live API is always
+    attempted first on each request; failures fall back to mock per-request.
     """
-    global _LIVE_API_WORKING
     key = getattr(settings, "GEMINI_API_KEY", "") or os.getenv("GEMINI_API_KEY", "")
     if not key or key.strip() == "":
-        return True
-    if _LIVE_API_WORKING is False:
         return True
     return False
 
@@ -52,8 +51,8 @@ def call_ai(system_prompt, user_text, images=None, schema=None, feature="tutor",
     provider = getattr(settings, "LLM_PROVIDER", "gemini")
     gemini_key = getattr(settings, "GEMINI_API_KEY", "") or os.getenv("GEMINI_API_KEY", "")
 
-    # If mock mode is already known or key is blank, directly use fallback
-    if is_mock_mode_active() or not gemini_key:
+    # If no key is configured, directly use fallback
+    if not gemini_key:
         if fallback_handler:
             return fallback_handler()
         return mock_ai.get_mock_tutor_response()
@@ -71,7 +70,7 @@ def call_ai(system_prompt, user_text, images=None, schema=None, feature="tutor",
             _LIVE_API_WORKING = True
             return parsed
         except Exception as e:
-            # On first attempt failure, retry once. On second failure, mark mock mode and fallback.
+            # On first attempt failure, retry once. On second failure, fall back to mock for this request only.
             if attempt == 1:
                 _LIVE_API_WORKING = False
                 if fallback_handler:
